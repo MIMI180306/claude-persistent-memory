@@ -125,106 +125,6 @@ async function handleRequest(data) {
     case 'ping':
       return { success: true, ready: isReady };
 
-    case 'analyze': {
-      const messages = [
-        {
-          role: 'system',
-          content: `You are a memory value assessment assistant. Strictly determine whether user input is worth saving as long-term memory.
-
-Classification fields:
-- type: preference/decision/pattern/fact/context (temporary context)
-- domain: frontend/backend/database/devops/testing/memory/general
-- capture: true (worth long-term saving) / false (do not save)
-- reason: brief explanation of the judgment
-- keywords: array of 3-5 keywords
-
-[Criteria for capture=true] Only the following are worth saving:
-1. User's explicit preferences/habits (applicable across sessions): "I like using TypeScript", "don't use var", "always use this format from now on"
-2. Architectural decisions and their reasons: "use Redis for caching because...", "chose option A over option B"
-3. Recurring error patterns and their solutions
-4. Project-level facts/conventions: "this project uses Vue 2", "API must return { code, msg, data }"
-5. User explicitly says "remember", "from now on", "always", "never" and other persistence directives
-
-[Criteria for capture=false] Do not save the following:
-1. One-off operation instructions: "optimize xxx", "change xxx to yyy", "add xxx feature", "modify xxx"
-2. Specific implementation steps for the current task
-3. Questions or inquiries
-4. Debugging commands, temporary tests
-5. Context that only makes sense in the current session
-6. Descriptions of already completed tasks
-
-Default tendency: when in doubt, choose capture=false. Better to miss something than to save low-value content.
-
-Return only JSON, nothing else.`
-        },
-        {
-          role: 'user',
-          content: text
-        }
-      ];
-
-      try {
-        const response = await callAzureOpenAI(messages, 200);
-
-        // Parse JSON
-        const result = {
-          success: true,
-          type: 'context',
-          typeConfidence: 0.5,
-          domain: 'general',
-          domainConfidence: 0.5,
-          shouldCapture: false,
-          captureReason: '',
-          keywords: []
-        };
-
-        try {
-          const jsonMatch = response.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-
-            const validTypes = ['preference', 'decision', 'pattern', 'fact', 'context'];
-            const validDomains = ['frontend', 'backend', 'database', 'devops', 'testing', 'memory', 'general'];
-
-            if (parsed.type) {
-              const t = parsed.type.toLowerCase();
-              result.type = validTypes.includes(t) ? t : 'context';
-              result.typeConfidence = validTypes.includes(t) ? 0.9 : 0.5;
-            }
-            if (parsed.domain) {
-              const d = parsed.domain.toLowerCase();
-              result.domain = validDomains.includes(d) ? d : 'general';
-              result.domainConfidence = validDomains.includes(d) ? 0.9 : 0.5;
-            }
-            if (parsed.capture !== undefined) {
-              result.shouldCapture = parsed.capture === true || parsed.capture === 'true';
-            }
-            if (parsed.reason) result.captureReason = parsed.reason;
-            if (parsed.keywords && Array.isArray(parsed.keywords)) {
-              result.keywords = parsed.keywords.slice(0, 5);
-            }
-          }
-        } catch (e) {
-          console.error('[LLMServer-Azure] JSON parse failed:', e.message);
-        }
-
-        return result;
-      } catch (e) {
-        console.error('[LLMServer-Azure] API error:', e.message);
-        return {
-          success: false,
-          error: e.message,
-          type: 'context',
-          typeConfidence: 0.5,
-          domain: 'general',
-          domainConfidence: 0.5,
-          shouldCapture: false,
-          captureReason: '',
-          keywords: []
-        };
-      }
-    }
-
     case 'structurize': {
       const { type: memType } = data;
       const typeRules = {
@@ -338,21 +238,6 @@ Output only XML:
       }
     }
 
-    case 'analyzeFeedback': {
-      const messages = [
-        { role: 'system', content: 'Determine the sentiment of the user message. Return only one word: positive / negative / neutral' },
-        { role: 'user', content: text }
-      ];
-      try {
-        const response = await callAzureOpenAI(messages, 20);
-        const lower = response.trim().toLowerCase();
-        const sentiment = ['positive', 'negative', 'neutral'].find(s => lower.includes(s)) || 'neutral';
-        return { success: true, sentiment };
-      } catch (e) {
-        return { success: false, error: e.message };
-      }
-    }
-
     case 'analyzeSession': {
       const { transcript } = data;
       if (!transcript || transcript.length < 50) {
@@ -434,24 +319,6 @@ Better to extract fewer items than to extract low-value content. Return at most 
       } catch (e) {
         console.error('[LLMServer-Azure] analyzeSession error:', e.message);
         return { success: false, error: e.message, memories: [] };
-      }
-    }
-
-    case 'analyzeError': {
-      const messages = [
-        { role: 'system', content: 'Determine whether the following command output contains an error. Return only JSON: {"isError": true/false, "errorType": "brief description"}' },
-        { role: 'user', content: text }
-      ];
-      try {
-        const response = await callAzureOpenAI(messages, 60);
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          return { success: true, isError: !!parsed.isError, errorType: parsed.errorType || '' };
-        }
-        return { success: true, isError: false, errorType: '' };
-      } catch (e) {
-        return { success: false, error: e.message };
       }
     }
 

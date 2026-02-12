@@ -216,7 +216,6 @@ server.tool(
         `## Memory System Statistics`,
         `- Total memories: ${stats.totalMemories}`,
         `- Total clusters: ${stats.totalClusters} (mature: ${stats.matureClusters})`,
-        `- Promoted memories: ${stats.promotedCount}`,
         '',
         '### By Type',
         ...Object.entries(stats.byType).map(([k, v]) => `  - ${k}: ${v}`),

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * LLM Server (Azure OpenAI) - 使用 Azure OpenAI API 的 LLM 分类服务
+ * LLM Server (Azure OpenAI) - LLM classification service using Azure OpenAI API
  *
- * 功能与 llm-server.js 相同，但使用 Azure OpenAI 而非本地 llama-server
+ * Same functionality as llm-server.js, but uses Azure OpenAI instead of local llama-server
  */
 
 const net = require('net');
@@ -16,7 +16,7 @@ const { ensureDir } = require('../lib/utils');
 const PORT = config.llmPort;
 const PID_FILE = path.join(config.pidDir, 'claude-llm.pid');
 
-// Azure OpenAI 配置
+// Azure OpenAI Configuration
 const AZURE_CONFIG = {
   endpoint: config.azure.endpoint,
   apiKey: config.azure.apiKey,
@@ -116,7 +116,7 @@ async function callAzureOpenAI(messages, maxTokens = 200) {
   });
 }
 
-// ============== 请求处理 ==============
+// ============== Request Handling ==============
 
 async function handleRequest(data) {
   const { action, text } = data;
@@ -129,33 +129,33 @@ async function handleRequest(data) {
       const messages = [
         {
           role: 'system',
-          content: `你是一个记忆价值评估助手。严格判断用户输入是否值得作为长期记忆保存。
+          content: `You are a memory value assessment assistant. Strictly determine whether user input is worth saving as long-term memory.
 
-分类字段：
-- type: preference(偏好)/decision(决策)/pattern(模式)/fact(事实)/context(临时上下文)
+Classification fields:
+- type: preference/decision/pattern/fact/context (temporary context)
 - domain: frontend/backend/database/devops/testing/memory/general
-- capture: true(值得长期保存)/false(不保存)
-- reason: 简短说明判断理由
-- keywords: 3-5个关键词数组
+- capture: true (worth long-term saving) / false (do not save)
+- reason: brief explanation of the judgment
+- keywords: array of 3-5 keywords
 
-【capture=true 的标准】只有以下情况才值得保存：
-1. 用户明确的偏好/习惯（跨会话通用）："我喜欢用 TypeScript"、"不要用 var"、"以后都用这种格式"
-2. 架构决策及其原因："用 Redis 做缓存因为..."、"选择方案A而不是B"
-3. 反复出现的错误模式和解决方案
-4. 项目级别的事实/约定："这个项目用 Vue 2"、"API 必须返回 { code, msg, data }"
-5. 用户明确说"记住"、"以后"、"总是"、"永远不要"等持久性指令
+[Criteria for capture=true] Only the following are worth saving:
+1. User's explicit preferences/habits (applicable across sessions): "I like using TypeScript", "don't use var", "always use this format from now on"
+2. Architectural decisions and their reasons: "use Redis for caching because...", "chose option A over option B"
+3. Recurring error patterns and their solutions
+4. Project-level facts/conventions: "this project uses Vue 2", "API must return { code, msg, data }"
+5. User explicitly says "remember", "from now on", "always", "never" and other persistence directives
 
-【capture=false 的标准】以下内容不保存：
-1. 一次性操作指令："优化一下xxx"、"把xxx改成yyy"、"加一个xxx功能"、"修改xxx"
-2. 当前任务的具体实现步骤
-3. 提问或询问
-4. 调试命令、临时测试
-5. 只在当前会话有意义的上下文
-6. 已经完成的任务描述
+[Criteria for capture=false] Do not save the following:
+1. One-off operation instructions: "optimize xxx", "change xxx to yyy", "add xxx feature", "modify xxx"
+2. Specific implementation steps for the current task
+3. Questions or inquiries
+4. Debugging commands, temporary tests
+5. Context that only makes sense in the current session
+6. Descriptions of already completed tasks
 
-默认倾向：如果不确定，选择 capture=false。宁可漏掉也不要保存低价值内容。
+Default tendency: when in doubt, choose capture=false. Better to miss something than to save low-value content.
 
-只返回 JSON，不要其他内容。`
+Return only JSON, nothing else.`
         },
         {
           role: 'user',
@@ -166,7 +166,7 @@ async function handleRequest(data) {
       try {
         const response = await callAzureOpenAI(messages, 200);
 
-        // 解析 JSON
+        // Parse JSON
         const result = {
           success: true,
           type: 'context',
@@ -228,7 +228,7 @@ async function handleRequest(data) {
     case 'structurize': {
       const { type: memType } = data;
       const typeRules = {
-        fact: '只需 <what>',
+        fact: 'only <what>',
         pattern: '<what> + <when> + <do> + <warn>',
         decision: '<what> + <warn>',
         preference: '<what> + <warn>',
@@ -240,23 +240,23 @@ async function handleRequest(data) {
       const messages = [
         {
           role: 'system',
-          content: `你是一个记忆结构化助手。将内容结构化为XML格式的持久记忆。
+          content: `You are a memory structuring assistant. Structure content into XML-formatted persistent memory.
 
-首先判断：是否有长期保存价值？
-- 一次性操作指令（"把A改成B"）→ 返回 REJECT
-- 临时对话/调试请求 → 返回 REJECT
-- 只在当前会话有意义 → 返回 REJECT
+First determine: is this worth saving long-term?
+- One-off operation instructions ("change A to B") -> return REJECT
+- Temporary conversation/debugging requests -> return REJECT
+- Only meaningful in the current session -> return REJECT
 
-如果有价值，输出XML（不要输出其他内容）：
-<memory type="${memType || 'context'}" domain="只选一个: frontend/backend/database/devops/testing/memory/general">
-  <what>核心事实，1-2句，去掉冗余词（必填）</what>
-  <when>何时触发/适用（用|分隔多个场景）</when>
-  <do>具体操作步骤或命令（用；分隔）</do>
-  <warn>禁止事项或易错点</warn>
+If it has value, output XML (do not output anything else):
+<memory type="${memType || 'context'}" domain="choose one: frontend/backend/database/devops/testing/memory/general">
+  <what>Core fact, 1-2 sentences, remove redundant words (required)</what>
+  <when>When to trigger/apply (use | to separate multiple scenarios)</when>
+  <do>Specific operation steps or commands (use ; to separate)</do>
+  <warn>Prohibited actions or common pitfalls</warn>
 </memory>
 
-当前类型 ${memType || 'context'} 使用字段: ${rule}
-不需要的字段直接省略。`
+Current type ${memType || 'context'} uses fields: ${rule}
+Omit fields that are not needed.`
         },
         {
           role: 'user',
@@ -294,15 +294,15 @@ async function handleRequest(data) {
       const messages = [
         {
           role: 'system',
-          content: `你是一个知识聚合助手。将多条相关记忆去重合并为一条XML记忆。
+          content: `You are a knowledge aggregation assistant. Deduplicate and merge multiple related memories into a single XML memory.
 
-合并规则：
-- <what> 用1-2句概括所有记忆的核心主题
-- <when> 合并所有适用场景（用|分隔）
-- <do> 合并所有具体操作（用；分隔），去掉重复
-- <warn> 合并所有警告，去掉重复
+Merge rules:
+- <what> Summarize the core theme of all memories in 1-2 sentences
+- <when> Merge all applicable scenarios (use | to separate)
+- <do> Merge all specific operations (use ; to separate), remove duplicates
+- <warn> Merge all warnings, remove duplicates
 
-只输出XML：
+Output only XML:
 <memory type="pattern" domain="${d}">
   <what>...</what>
   <when>...</when>
@@ -312,7 +312,7 @@ async function handleRequest(data) {
         },
         {
           role: 'user',
-          content: `合并以下 ${memories.length} 条记忆：\n\n${memoriesText}`
+          content: `Merge the following ${memories.length} memories:\n\n${memoriesText}`
         }
       ];
 
@@ -340,7 +340,7 @@ async function handleRequest(data) {
 
     case 'analyzeFeedback': {
       const messages = [
-        { role: 'system', content: '判断用户消息的情感倾向。只返回一个词: positive / negative / neutral' },
+        { role: 'system', content: 'Determine the sentiment of the user message. Return only one word: positive / negative / neutral' },
         { role: 'user', content: text }
       ];
       try {
@@ -362,37 +362,37 @@ async function handleRequest(data) {
       const messages = [
         {
           role: 'system',
-          content: `你是一个开发会话分析助手。分析会话记录，提取值得长期记忆的内容。
+          content: `You are a development session analysis assistant. Analyze session transcripts and extract content worth saving as long-term memory.
 
-【提取标准】只提取：
-1. bug: 遇到错误→修复的经验（包含错误信息和修复方法）
-2. decision: 用户明确表达的技术决策或偏好（"以后都用X"、"不要用Y"）
-3. pattern: 可复用的开发模式或操作流程
-4. preference: 用户的编码习惯、工具偏好
+[Extraction criteria] Only extract:
+1. bug: error encountered -> fix experience (including error message and fix method)
+2. decision: user's explicitly stated technical decisions or preferences ("always use X from now on", "don't use Y")
+3. pattern: reusable development patterns or operational workflows
+4. preference: user's coding habits, tool preferences
 
-【不要提取】
-- 一次性操作指令（"添加按钮"、"修改接口"、"优化xxx"）
-- 代码快照或具体实现细节（代码会变，不值得记忆）
-- 普通的文件查看/搜索/安装依赖/启动服务
-- 信息查询和问答
-- 当前任务的具体步骤
+[Do NOT extract]
+- One-off operation instructions ("add a button", "modify the API", "optimize xxx")
+- Code snapshots or specific implementation details (code changes, not worth memorizing)
+- Routine file viewing/searching/installing dependencies/starting services
+- Information queries and Q&A
+- Specific steps of the current task
 
-【输出格式】
-对每条记忆返回一个 <memory> 块：
-<memory type="只选一个: bug/decision/pattern/preference" domain="只选一个: frontend/backend/database/devops/testing/memory/general" confidence="0.7-0.9">
-  <summary>纯文本摘要（一句话）</summary>
-  <what>核心事实（1-2句）</what>
-  <when>触发场景（可选，用|分隔）</when>
-  <do>具体操作（可选，用；分隔）</do>
-  <warn>注意事项（可选）</warn>
+[Output format]
+Return a <memory> block for each memory:
+<memory type="choose one: bug/decision/pattern/preference" domain="choose one: frontend/backend/database/devops/testing/memory/general" confidence="0.7-0.9">
+  <summary>Plain text summary (one sentence)</summary>
+  <what>Core fact (1-2 sentences)</what>
+  <when>Trigger scenarios (optional, use | to separate)</when>
+  <do>Specific operations (optional, use ; to separate)</do>
+  <warn>Caveats (optional)</warn>
 </memory>
 
-如果没有值得保存的内容，只返回 NONE。
-宁可少提取也不要提取低价值内容。最多返回 3 条。`
+If there is nothing worth saving, return only NONE.
+Better to extract fewer items than to extract low-value content. Return at most 3 items.`
         },
         {
           role: 'user',
-          content: `=== 会话记录 ===\n${transcript}`
+          content: `=== Session Transcript ===\n${transcript}`
         }
       ];
 
@@ -404,7 +404,7 @@ async function handleRequest(data) {
           return { success: true, memories: [] };
         }
 
-        // 提取所有 <memory> 块
+        // Extract all <memory> blocks
         const memoryBlocks = [];
         const regex = /<memory\s+([^>]+)>([\s\S]*?)<\/memory>/g;
         let match;
@@ -412,16 +412,16 @@ async function handleRequest(data) {
           const attrs = match[1];
           const body = match[2];
 
-          // 解析属性
+          // Parse attributes
           const type = (attrs.match(/type="([^"]+)"/) || [])[1] || 'pattern';
           const domain = (attrs.match(/domain="([^"]+)"/) || [])[1] || 'general';
           const confidence = parseFloat((attrs.match(/confidence="([^"]+)"/) || [])[1] || '0.8');
 
-          // 提取 summary
+          // Extract summary
           const summaryMatch = body.match(/<summary>([\s\S]*?)<\/summary>/);
           const summary = summaryMatch ? summaryMatch[1].trim() : '';
 
-          // 构建 structured_content（去掉 summary 标签，保留其他）
+          // Build structured_content (remove summary tag, keep the rest)
           const structuredBody = body.replace(/<summary>[\s\S]*?<\/summary>\s*/, '');
           const structuredContent = `<memory type="${type}" domain="${domain}">\n${structuredBody.trim()}\n</memory>`;
 
@@ -439,7 +439,7 @@ async function handleRequest(data) {
 
     case 'analyzeError': {
       const messages = [
-        { role: 'system', content: '判断以下命令输出是否包含错误。只返回JSON: {"isError": true/false, "errorType": "简短描述"}' },
+        { role: 'system', content: 'Determine whether the following command output contains an error. Return only JSON: {"isError": true/false, "errorType": "brief description"}' },
         { role: 'user', content: text }
       ];
       try {
@@ -460,7 +460,7 @@ async function handleRequest(data) {
   }
 }
 
-// ============== 服务器启动 ==============
+// ============== Server Startup ==============
 
 async function checkAzureConnection() {
   try {
@@ -478,7 +478,7 @@ async function startServer() {
   console.error(`[LLMServer-Azure] Endpoint: ${AZURE_CONFIG.endpoint}`);
   console.error(`[LLMServer-Azure] Deployment: ${AZURE_CONFIG.deployment}`);
 
-  // 检查连接
+  // Check connection
   const connected = await checkAzureConnection();
   if (!connected) {
     console.error('[LLMServer-Azure] Failed to connect to Azure OpenAI');
@@ -487,7 +487,7 @@ async function startServer() {
   console.error('[LLMServer-Azure] Azure OpenAI connected');
   isReady = true;
 
-  // 创建 TCP 服务器
+  // Create TCP server
   server = net.createServer((socket) => {
     let buffer = '';
 
@@ -526,7 +526,7 @@ async function startServer() {
     fs.writeFileSync(PID_FILE, process.pid.toString());
   });
 
-  // 优雅关闭
+  // Graceful shutdown
   process.on('SIGTERM', () => {
     console.error('[LLMServer-Azure] SIGTERM received');
     cleanup();

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary SEO -->
+  <title>Claude Persistent Memory - Long-term Memory for Claude Code Across Sessions</title>
+  <meta name="description" content="Give Claude Code persistent memory that survives across sessions. Hybrid BM25 + vector semantic search, LLM-driven structuring, 4-channel retrieval via MCP server and hooks. Local-first, open source.">
+  <meta name="keywords" content="claude code memory, claude persistent memory, claude code plugin, MCP server, claude code hooks, AI memory, long-term memory, semantic search, BM25, vector search, sqlite, claude code extension, AI developer tools">
+  <meta name="author" content="MIMI180306">
+  <link rel="canonical" href="https://mimi180306.github.io/claude-persistent-memory/">
+
+  <!-- Open Graph / Facebook / Discord -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mimi180306.github.io/claude-persistent-memory/">
+  <meta property="og:title" content="Claude Persistent Memory - Long-term Memory for Claude Code">
+  <meta property="og:description" content="Give Claude Code persistent memory across sessions. Hybrid BM25 + vector search, auto-clustering, confidence scoring. Local-first & open source.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/MIMI180306/claude-persistent-memory/main/assets/social-preview.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Claude Persistent Memory - Long-term Memory for Claude Code">
+  <meta name="twitter:description" content="Give Claude Code persistent memory across sessions. Hybrid BM25 + vector search, auto-clustering, confidence scoring.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/MIMI180306/claude-persistent-memory/main/assets/social-preview.png">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "Claude Persistent Memory",
+    "description": "Long-term persistent memory system for Claude Code. Features hybrid BM25 + vector semantic search, LLM-driven memory structuring, 4-channel retrieval via MCP server and Claude Code hooks, automatic clustering, and confidence-based time decay. All data stored locally in SQLite.",
+    "url": "https://github.com/MIMI180306/claude-persistent-memory",
+    "codeRepository": "https://github.com/MIMI180306/claude-persistent-memory",
+    "programmingLanguage": "JavaScript",
+    "runtimePlatform": "Node.js",
+    "license": "https://opensource.org/licenses/MIT",
+    "operatingSystem": "macOS, Linux",
+    "applicationCategory": "DeveloperApplication",
+    "keywords": "claude code, persistent memory, MCP server, claude hooks, semantic search, BM25, vector search, AI memory, developer tools",
+    "author": {
+      "@type": "Person",
+      "name": "MIMI180306",
+      "url": "https://github.com/MIMI180306"
+    }
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0B0F1A;
+      --bg2: #111827;
+      --text: #F1F5F9;
+      --muted: #94A3B8;
+      --accent: #818CF8;
+      --orange: #EA7744;
+      --card-bg: rgba(255,255,255,0.03);
+      --card-border: rgba(255,255,255,0.06);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 30%, rgba(99,102,241,0.1) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 70%, rgba(234,119,68,0.08) 0%, transparent 70%);
+    }
+    .hero img { width: 80px; margin-bottom: 24px; }
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 8px;
+    }
+    .hero .accent-line {
+      width: 120px; height: 3px; border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--orange));
+      margin: 0 auto 16px;
+    }
+    .hero p {
+      font-size: 18px; color: var(--muted); max-width: 600px; margin: 0 auto 32px;
+    }
+    .hero .cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 8px;
+      background: var(--accent); color: white;
+      text-decoration: none; font-weight: 600; font-size: 16px;
+      transition: background 0.2s;
+    }
+    .hero .cta:hover { background: #6366F1; }
+    .hero .cta svg { width: 20px; height: 20px; }
+    .hero .sub-cta {
+      display: block; margin-top: 12px;
+      font-size: 14px; color: var(--muted);
+    }
+    .hero .sub-cta code {
+      background: rgba(255,255,255,0.06); padding: 4px 10px;
+      border-radius: 4px; font-size: 13px;
+    }
+
+    .features {
+      max-width: 1000px; margin: 0 auto;
+      padding: 60px 24px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .feature {
+      padding: 28px;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+    }
+    .feature h3 { font-size: 18px; margin-bottom: 8px; }
+    .feature p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+    .install {
+      max-width: 700px; margin: 0 auto;
+      padding: 60px 24px; text-align: center;
+    }
+    .install h2 { font-size: 28px; margin-bottom: 24px; }
+    .install pre {
+      text-align: left; background: var(--bg2);
+      border: 1px solid var(--card-border);
+      border-radius: 8px; padding: 20px; overflow-x: auto;
+      font-size: 14px; line-height: 1.8; color: var(--muted);
+    }
+    .install pre span { color: #7DD3FC; }
+
+    .arch {
+      max-width: 800px; margin: 0 auto;
+      padding: 40px 24px 60px; text-align: center;
+    }
+    .arch h2 { font-size: 28px; margin-bottom: 24px; }
+    .arch pre {
+      text-align: left; background: var(--bg2);
+      border: 1px solid var(--card-border);
+      border-radius: 8px; padding: 20px; overflow-x: auto;
+      font-size: 12px; line-height: 1.6; color: var(--muted);
+    }
+
+    footer {
+      text-align: center; padding: 40px 24px;
+      font-size: 14px; color: #475569;
+      border-top: 1px solid var(--card-border);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .features { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <img src="https://raw.githubusercontent.com/MIMI180306/claude-persistent-memory/main/assets/logo.png" alt="Claude Persistent Memory Logo" width="80" height="80">
+    <h1>Claude Persistent Memory</h1>
+    <div class="accent-line"></div>
+    <p>Give Claude Code long-term memory that persists across sessions. Hybrid search, auto-clustering, and confidence scoring — all stored locally.</p>
+    <a class="cta" href="https://github.com/MIMI180306/claude-persistent-memory">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+    <span class="sub-cta"><code>git clone https://github.com/MIMI180306/claude-persistent-memory.git</code></span>
+  </section>
+
+  <section class="features">
+    <article class="feature">
+      <h3>🔍 Hybrid Search</h3>
+      <p>BM25 full-text search (FTS5) combined with vector semantic similarity (sqlite-vec) for accurate memory retrieval with fused ranking.</p>
+    </article>
+    <article class="feature">
+      <h3>📡 4-Channel Retrieval</h3>
+      <p>Pull via MCP tools on demand, plus auto-push through Claude Code hooks on user prompt, pre-tool, and post-tool events.</p>
+    </article>
+    <article class="feature">
+      <h3>🧠 LLM Structuring</h3>
+      <p>Memories are automatically structured into &lt;what&gt;/&lt;when&gt;/&lt;do&gt;/&lt;warn&gt; XML format by LLM for consistent retrieval.</p>
+    </article>
+    <article class="feature">
+      <h3>📦 Auto Clustering</h3>
+      <p>Similar memories are grouped automatically. Mature clusters are promoted to reusable skill memories that never decay.</p>
+    </article>
+    <article class="feature">
+      <h3>📊 Confidence Scoring</h3>
+      <p>Each memory has a confidence score adjusted through validation feedback and usage frequency, with configurable time decay.</p>
+    </article>
+    <article class="feature">
+      <h3>🔒 Local-First</h3>
+      <p>All data stored in local SQLite database. Your memories never leave your machine. Zero cloud dependency for storage.</p>
+    </article>
+  </section>
+
+  <section class="install">
+    <h2>Quick Start</h2>
+    <pre><span># Clone and install</span>
+git clone https://github.com/MIMI180306/claude-persistent-memory.git
+cd claude-persistent-memory
+npm install
+
+<span># Configure Azure OpenAI credentials</span>
+cp config.default.js config.js
+
+<span># Start services</span>
+npm run embedding-server  <span># Terminal 1: bge-m3 embeddings</span>
+npm run llm-server        <span># Terminal 2: Azure OpenAI proxy</span></pre>
+  </section>
+
+  <section class="arch">
+    <h2>Architecture</h2>
+    <pre>
+┌──────────────────────────────────────────────────────────┐
+│                   Claude Code Session                    │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  Pull (MCP Tools)              Push (Hooks)              │
+│  ┌─────────────────┐   ┌────────────────────────────┐    │
+│  │ memory_search   │   │ UserPromptSubmit Hook      │    │
+│  │ memory_save     │   │ PreToolUse Hook            │    │
+│  │ memory_validate │   │ PostToolUse Hook           │    │
+│  │ memory_stats    │   │ PreCompact / SessionEnd    │    │
+│  └────────┬────────┘   └─────────────┬──────────────┘    │
+│           └────────────┬─────────────┘                   │
+│                        ▼                                 │
+│  ┌──────────────────────────────────────────────────┐    │
+│  │         SQLite + FTS5 + sqlite-vec               │    │
+│  └──────────────────────────────────────────────────┘    │
+│                        ▲                                 │
+│           ┌────────────┴────────────┐                    │
+│  ┌────────┴────────┐  ┌────────────┴───────────────┐    │
+│  │ Embedding Server│  │ LLM Server                 │    │
+│  │ bge-m3 (1024d)  │  │ Azure OpenAI GPT-4.1       │    │
+│  └─────────────────┘  └────────────────────────────┘    │
+└──────────────────────────────────────────────────────────┘</pre>
+  </section>
+
+  <footer>
+    <p>MIT License · Built by <a href="https://github.com/MIMI180306">MIMI180306</a> · <a href="https://github.com/MIMI180306/claude-persistent-memory">GitHub Repository</a></p>
+  </footer>
+
+</body>
+</html>

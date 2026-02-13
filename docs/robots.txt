@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mimi180306.github.io/claude-persistent-memory/sitemap.xml

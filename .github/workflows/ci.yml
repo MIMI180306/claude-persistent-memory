@@ -20,13 +20,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Check syntax (no errors in require/import)
-        run: node -e "const fs=require('fs'),path=require('path');['lib','hooks','services','tools'].forEach(d=>{if(fs.existsSync(d))fs.readdirSync(d).filter(f=>f.endsWith('.js')).forEach(f=>{try{require(path.resolve(d,f))}catch(e){if(e instanceof SyntaxError){console.error(d+'/'+f+':',e.message);process.exit(1)}}})});" || true
+        run: npm install
 
       - name: Verify config template loads
         run: node -e "require('./config.default.js'); console.log('✅ config.default.js loads OK')"

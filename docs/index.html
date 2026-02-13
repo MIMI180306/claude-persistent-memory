@@ -50,203 +50,901 @@
   }
   </script>
 
+  <!-- Fonts: IBM Plex Mono (terminal) + IBM Plex Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg: #0B0F1A;
-      --bg2: #111827;
-      --text: #F1F5F9;
-      --muted: #94A3B8;
-      --accent: #818CF8;
-      --orange: #EA7744;
-      --card-bg: rgba(255,255,255,0.03);
-      --card-border: rgba(255,255,255,0.06);
+      --bg: #09090B;
+      --bg-elevated: #0F0F12;
+      --bg-card: rgba(217, 119, 87, 0.03);
+      --border: rgba(217, 119, 87, 0.1);
+      --border-hover: rgba(217, 119, 87, 0.25);
+      --text: #EEEEF0;
+      --text-secondary: #9CA3AF;
+      --text-dim: #6B7280;
+      --orange: #D97757;
+      --orange-light: #E8956F;
+      --orange-glow: rgba(217, 119, 87, 0.15);
+      --orange-glow-strong: rgba(217, 119, 87, 0.3);
+      --cyan: #67E8F9;
+      --cyan-dim: rgba(103, 232, 249, 0.08);
+      --green: #6EE7B7;
+      --green-dim: rgba(110, 231, 183, 0.08);
+      --amber: #FCD34D;
+      --grid-color: rgba(217, 119, 87, 0.04);
+      --grid-line: rgba(217, 119, 87, 0.07);
     }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
+    /* ── Animated Background ───────────────────── */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(0,0,0,0.5) 0%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(0,0,0,0.5) 0%, transparent 70%);
+    }
+    .bg-dots {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: radial-gradient(circle, rgba(217,119,87,0.12) 1px, transparent 1px);
+      background-size: 80px 80px;
+      background-position: 40px 40px;
+      mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, rgba(0,0,0,0.6) 0%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, rgba(0,0,0,0.6) 0%, transparent 70%);
+    }
+
+    /* ── Scanline overlay ──────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.015) 2px,
+        rgba(0,0,0,0.015) 4px
+      );
+    }
+
+    /* ── Nav ────────────────────────────────────── */
+    nav {
+      position: fixed; top: 16px; left: 24px; right: 24px; z-index: 100;
+      padding: 0 20px; height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(9, 9, 11, 0.75);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: border-color 0.3s;
+    }
+    nav:hover { border-color: var(--border-hover); }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 600; font-size: 14px;
+    }
+    .nav-brand img {
+      width: 26px; height: 26px; border-radius: 6px;
+      filter: drop-shadow(0 0 6px rgba(217,119,87,0.3));
+    }
+    .nav-brand-text { color: var(--orange); }
+    .nav-links { display: flex; align-items: center; gap: 20px; }
+    .nav-links a {
+      color: var(--text-dim); text-decoration: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px; font-weight: 500;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--orange); }
+    .nav-github {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 6px;
+      background: var(--orange-glow);
+      border: 1px solid rgba(217,119,87,0.2);
+      color: var(--orange) !important;
+      font-size: 12px !important;
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .nav-github:hover {
+      background: rgba(217,119,87,0.12);
+      border-color: rgba(217,119,87,0.35);
+      box-shadow: 0 0 20px rgba(217,119,87,0.1);
+    }
+    .nav-github svg { width: 14px; height: 14px; }
+    @media (max-width: 700px) {
+      .nav-links a:not(.nav-github) { display: none; }
+      nav { left: 12px; right: 12px; }
+    }
+
+    /* ── Hero ───────────────────────────────────── */
     .hero {
+      position: relative; z-index: 1;
       text-align: center;
-      padding: 80px 24px 60px;
-      background:
-        radial-gradient(ellipse 60% 50% at 20% 30%, rgba(99,102,241,0.1) 0%, transparent 70%),
-        radial-gradient(ellipse 50% 40% at 80% 70%, rgba(234,119,68,0.08) 0%, transparent 70%);
+      padding: 160px 24px 100px;
     }
-    .hero img { width: 80px; margin-bottom: 24px; }
-    .hero h1 {
-      font-size: clamp(32px, 5vw, 52px);
-      font-weight: 800;
-      letter-spacing: -1.5px;
-      margin-bottom: 8px;
+    .hero-orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(100px); pointer-events: none; z-index: -1;
     }
-    .hero .accent-line {
-      width: 120px; height: 3px; border-radius: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--orange));
-      margin: 0 auto 16px;
+    .hero-orb-1 {
+      width: 500px; height: 500px;
+      top: -100px; left: 50%; transform: translateX(-70%);
+      background: rgba(217, 119, 87, 0.12);
+      animation: orb-float 8s ease-in-out infinite;
     }
-    .hero p {
-      font-size: 18px; color: var(--muted); max-width: 600px; margin: 0 auto 32px;
+    .hero-orb-2 {
+      width: 400px; height: 400px;
+      top: 0px; left: 50%; transform: translateX(20%);
+      background: rgba(217, 119, 87, 0.06);
+      animation: orb-float 10s ease-in-out infinite reverse;
     }
-    .hero .cta {
+    @keyframes orb-float {
+      0%, 100% { transform: translateX(-70%) translateY(0); }
+      50% { transform: translateX(-70%) translateY(-30px); }
+    }
+    .hero-content { position: relative; max-width: 740px; margin: 0 auto; }
+
+    .hero-tag {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 28px; border-radius: 8px;
-      background: var(--accent); color: white;
-      text-decoration: none; font-weight: 600; font-size: 16px;
-      transition: background 0.2s;
+      padding: 5px 14px 5px 10px; border-radius: 999px;
+      background: var(--orange-glow);
+      border: 1px solid rgba(217,119,87,0.18);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px; font-weight: 500; color: var(--orange);
+      letter-spacing: 0.5px;
+      margin-bottom: 32px;
     }
-    .hero .cta:hover { background: #6366F1; }
-    .hero .cta svg { width: 20px; height: 20px; }
-    .hero .sub-cta {
-      display: block; margin-top: 12px;
-      font-size: 14px; color: var(--muted);
+    .hero-tag-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 8px var(--orange);
+      animation: blink 2s ease-in-out infinite;
     }
-    .hero .sub-cta code {
-      background: rgba(255,255,255,0.06); padding: 4px 10px;
-      border-radius: 4px; font-size: 13px;
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
     }
 
-    .features {
-      max-width: 1000px; margin: 0 auto;
-      padding: 60px 24px;
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+    .hero h1 {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: clamp(38px, 6vw, 60px);
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1.05;
+      margin-bottom: 24px;
     }
-    .feature {
+    .hero .h1-accent {
+      color: var(--orange);
+      text-shadow: 0 0 40px rgba(217,119,87,0.25);
+    }
+    .hero .subtitle {
+      font-size: 17px; color: var(--text-secondary);
+      max-width: 520px; margin: 0 auto 40px;
+      line-height: 1.75;
+    }
+    .hero .subtitle strong { color: var(--text); font-weight: 500; }
+
+    .hero-actions { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 8px;
+      background: var(--orange); color: #fff;
+      text-decoration: none; font-weight: 600; font-size: 14px;
+      font-family: 'IBM Plex Mono', monospace;
+      border: none; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.25s;
+      box-shadow: 0 0 24px rgba(217,119,87,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 40px rgba(217,119,87,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .btn-primary svg { width: 16px; height: 16px; }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary); text-decoration: none;
+      font-weight: 500; font-size: 14px;
+      font-family: 'IBM Plex Mono', monospace;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--orange); border-color: var(--border-hover); }
+    .btn-ghost svg { width: 16px; height: 16px; }
+
+    /* Terminal-style clone box */
+    .hero-terminal {
+      margin-top: 32px;
+      display: inline-flex; align-items: center;
+      padding: 0; border-radius: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .hero-terminal:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 0 20px rgba(217,119,87,0.06);
+    }
+    .terminal-prompt {
+      padding: 10px 0 10px 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; color: var(--orange); user-select: none;
+    }
+    .terminal-cmd {
+      padding: 10px 8px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .terminal-copy {
+      padding: 10px 14px 10px 8px;
+      color: var(--text-dim);
+      display: flex; align-items: center;
+      transition: color 0.2s;
+    }
+    .hero-terminal:hover .terminal-copy { color: var(--orange); }
+    .terminal-copy svg { width: 14px; height: 14px; }
+
+    /* ── Shared section ─────────────────────────── */
+    section { position: relative; z-index: 1; padding: 100px 24px; }
+    .container { max-width: 1080px; margin: 0 auto; }
+    .section-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-tag::before {
+      content: ''; display: block;
+      width: 12px; height: 1px; background: var(--orange);
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 700; letter-spacing: -1px;
+      margin-bottom: 14px; line-height: 1.15;
+    }
+    .section-desc {
+      font-size: 16px; color: var(--text-secondary);
+      max-width: 520px; line-height: 1.75;
+    }
+
+    /* ── Divider ────────────────────────────────── */
+    .divider {
+      max-width: 1080px; margin: 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    /* ── Features ───────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      margin-top: 56px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .feature-cell {
+      padding: 32px 28px;
+      background: var(--bg);
+      transition: background 0.3s;
+      cursor: default;
+    }
+    .feature-cell:hover { background: var(--bg-elevated); }
+    .feature-idx {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; font-weight: 600;
+      color: var(--orange);
+      opacity: 0.5;
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+    .feature-cell h3 {
+      font-size: 16px; font-weight: 600;
+      margin-bottom: 10px; letter-spacing: -0.3px;
+    }
+    .feature-cell p {
+      font-size: 13.5px; color: var(--text-secondary);
+      line-height: 1.7;
+    }
+    @media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .features-grid { grid-template-columns: 1fr; } }
+
+    /* ── Architecture ──────────────────────────── */
+    .arch-section { background: var(--bg-elevated); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .arch-visual {
+      margin-top: 56px;
+      position: relative;
+    }
+    .arch-row {
+      display: grid; gap: 12px;
+      margin-bottom: 12px;
+    }
+    .arch-row-2 { grid-template-columns: 1fr 1fr; }
+    .arch-row-1 { grid-template-columns: 1fr; }
+
+    .arch-box {
+      padding: 24px;
+      border-radius: 12px;
+      background: rgba(9, 9, 11, 0.8);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .arch-box::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 1px;
+    }
+    .arch-box.orange-top::before { background: linear-gradient(90deg, transparent, var(--orange), transparent); }
+    .arch-box.cyan-top::before { background: linear-gradient(90deg, transparent, var(--cyan), transparent); }
+    .arch-box.green-top::before { background: linear-gradient(90deg, transparent, var(--green), transparent); }
+
+    .arch-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .arch-label.orange { color: var(--orange); }
+    .arch-label.cyan { color: var(--cyan); }
+    .arch-label.green { color: var(--green); }
+    .arch-label.amber { color: var(--amber); }
+
+    .arch-items { display: flex; flex-direction: column; gap: 6px; }
+    .arch-item {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .arch-dot {
+      width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+    }
+    .arch-dot.orange { background: var(--orange); box-shadow: 0 0 6px rgba(217,119,87,0.5); }
+    .arch-dot.cyan { background: var(--cyan); box-shadow: 0 0 6px rgba(103,232,249,0.5); }
+    .arch-dot.green { background: var(--green); box-shadow: 0 0 6px rgba(110,231,183,0.5); }
+    .arch-dot.amber { background: var(--amber); box-shadow: 0 0 6px rgba(252,211,77,0.5); }
+
+    .arch-core {
+      text-align: center; padding: 20px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(217,119,87,0.08), rgba(217,119,87,0.02));
+      border: 1px solid rgba(217,119,87,0.15);
+      position: relative;
+    }
+    .arch-core-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 15px; font-weight: 600; color: var(--orange);
+      text-shadow: 0 0 20px rgba(217,119,87,0.2);
+    }
+    .arch-core-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px; color: var(--text-dim); margin-top: 4px;
+    }
+
+    /* Connection lines */
+    .arch-connector {
+      display: flex; justify-content: center; padding: 8px 0;
+    }
+    .arch-line {
+      width: 1px; height: 24px;
+      background: linear-gradient(180deg, var(--orange), transparent);
+    }
+
+    @media (max-width: 600px) {
+      .arch-row-2 { grid-template-columns: 1fr; }
+    }
+
+    /* ── Quick Start ───────────────────────────── */
+    .steps {
+      margin-top: 56px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .step {
       padding: 28px;
       border-radius: 12px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
     }
-    .feature h3 { font-size: 18px; margin-bottom: 8px; }
-    .feature p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+    .step:hover { border-color: var(--border-hover); }
+    .step::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, var(--orange), transparent);
+    }
+    .step-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 32px; font-weight: 700;
+      color: var(--orange);
+      opacity: 0.15;
+      position: absolute; top: 16px; right: 20px;
+      line-height: 1;
+    }
+    .step-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; font-weight: 600;
+      color: var(--orange);
+      letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .step pre {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12.5px; line-height: 1.9;
+      color: var(--text-secondary);
+      white-space: pre-wrap; word-break: break-all;
+    }
+    .step pre .c { color: var(--text-dim); }
+    .step pre .g { color: var(--green); }
+    .step pre .o { color: var(--orange); }
+    .step pre .y { color: var(--amber); }
+    @media (max-width: 900px) { .steps { grid-template-columns: 1fr; } }
 
-    .install {
-      max-width: 700px; margin: 0 auto;
-      padding: 60px 24px; text-align: center;
+    /* ── How it works (lifecycle) ──────────────── */
+    .lifecycle-section { background: var(--bg-elevated); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .lifecycle-steps {
+      margin-top: 56px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      padding-bottom: 8px;
     }
-    .install h2 { font-size: 28px; margin-bottom: 24px; }
-    .install pre {
-      text-align: left; background: var(--bg2);
-      border: 1px solid var(--card-border);
-      border-radius: 8px; padding: 20px; overflow-x: auto;
-      font-size: 14px; line-height: 1.8; color: var(--muted);
+    .lc-step {
+      flex: 1; min-width: 120px;
+      text-align: center;
+      padding: 20px 12px;
+      position: relative;
     }
-    .install pre span { color: #7DD3FC; }
+    .lc-step::after {
+      content: '';
+      position: absolute; top: 32px; right: -1px;
+      width: 24px; height: 1px;
+      background: var(--border);
+    }
+    .lc-step:last-child::after { display: none; }
+    .lc-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 20px; font-weight: 700;
+      color: var(--orange);
+      text-shadow: 0 0 16px rgba(217,119,87,0.3);
+      margin-bottom: 10px;
+    }
+    .lc-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px; font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .lc-desc {
+      font-size: 12px; color: var(--text-dim);
+      line-height: 1.5;
+    }
+    @media (max-width: 700px) {
+      .lifecycle-steps { flex-wrap: wrap; }
+      .lc-step { min-width: calc(50% - 8px); flex: none; }
+      .lc-step::after { display: none; }
+    }
 
-    .arch {
-      max-width: 800px; margin: 0 auto;
-      padding: 40px 24px 60px; text-align: center;
+    /* ── Memory Types ──────────────────────────── */
+    .types-grid {
+      margin-top: 56px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
     }
-    .arch h2 { font-size: 28px; margin-bottom: 24px; }
-    .arch pre {
-      text-align: left; background: var(--bg2);
-      border: 1px solid var(--card-border);
-      border-radius: 8px; padding: 20px; overflow-x: auto;
-      font-size: 12px; line-height: 1.6; color: var(--muted);
+    .type-cell {
+      padding: 22px 24px;
+      background: var(--bg);
+      display: flex; align-items: baseline; gap: 16px;
+      transition: background 0.2s;
+    }
+    .type-cell:hover { background: var(--bg-elevated); }
+    .type-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; font-weight: 600;
+      color: var(--orange);
+      flex-shrink: 0; min-width: 80px;
+    }
+    .type-meta {
+      flex: 1;
+    }
+    .type-halflife {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+    .type-desc {
+      font-size: 13px; color: var(--text-secondary); line-height: 1.5;
     }
 
+    /* ── Footer ────────────────────────────────── */
     footer {
-      text-align: center; padding: 40px 24px;
-      font-size: 14px; color: #475569;
-      border-top: 1px solid var(--card-border);
+      position: relative; z-index: 1;
+      padding: 48px 24px;
+      border-top: 1px solid var(--border);
     }
-    footer a { color: var(--accent); text-decoration: none; }
+    .footer-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-brand {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; color: var(--text-dim);
+    }
+    .footer-brand a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+    .footer-brand a:hover { color: var(--orange); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      color: var(--text-dim); text-decoration: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px; letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--orange); }
+    @media (max-width: 600px) {
+      .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+    }
 
-    @media (max-width: 640px) {
-      .features { grid-template-columns: 1fr; }
+    /* ── Animations ─────────────────────────────── */
+    @media (prefers-reduced-motion: no-preference) {
+      .fade-in {
+        opacity: 0; transform: translateY(16px);
+        animation: fadeIn 0.5s ease forwards;
+      }
+      .delay-1 { animation-delay: 0.08s; }
+      .delay-2 { animation-delay: 0.16s; }
+      .delay-3 { animation-delay: 0.24s; }
+      .delay-4 { animation-delay: 0.32s; }
+      @keyframes fadeIn {
+        to { opacity: 1; transform: translateY(0); }
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .fade-in { opacity: 1; transform: none; }
     }
   </style>
 </head>
 <body>
 
-  <section class="hero">
-    <img src="https://raw.githubusercontent.com/MIMI180306/claude-persistent-memory/main/assets/logo.png" alt="Claude Persistent Memory Logo" width="80" height="80">
-    <h1>Claude Persistent Memory</h1>
-    <div class="accent-line"></div>
-    <p>Give Claude Code long-term memory that persists across sessions. Hybrid search, auto-clustering, and confidence scoring — all stored locally.</p>
-    <a class="cta" href="https://github.com/MIMI180306/claude-persistent-memory">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-      View on GitHub
+  <!-- Background layers -->
+  <div class="bg-grid"></div>
+  <div class="bg-dots"></div>
+
+  <!-- Nav -->
+  <nav>
+    <a class="nav-brand" href="#">
+      <img src="https://raw.githubusercontent.com/MIMI180306/claude-persistent-memory/main/assets/logo.png" alt="Logo" width="26" height="26">
+      <span class="nav-brand-text">claude</span>-persistent-memory
     </a>
-    <span class="sub-cta"><code>git clone https://github.com/MIMI180306/claude-persistent-memory.git</code></span>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#quickstart">Get Started</a>
+      <a class="nav-github" href="https://github.com/MIMI180306/claude-persistent-memory">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        Star on GitHub
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-content">
+      <div class="hero-tag fade-in">
+        <span class="hero-tag-dot"></span>
+        Open Source &middot; Local-First &middot; MIT License
+      </div>
+      <h1 class="fade-in delay-1">
+        Persistent Memory<br>for <span class="h1-accent">Claude Code</span>
+      </h1>
+      <p class="subtitle fade-in delay-2">
+        Give Claude Code <strong>long-term memory</strong> that survives across sessions.
+        Hybrid BM25 + vector search, auto-clustering, and confidence scoring &mdash; all stored locally.
+      </p>
+      <div class="hero-actions fade-in delay-3">
+        <a class="btn-primary" href="https://github.com/MIMI180306/claude-persistent-memory">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+        <a class="btn-ghost" href="#quickstart">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+          Quick Start
+        </a>
+      </div>
+      <div class="hero-terminal fade-in delay-4" onclick="navigator.clipboard.writeText('git clone https://github.com/MIMI180306/claude-persistent-memory.git')" title="Click to copy">
+        <span class="terminal-prompt">$</span>
+        <span class="terminal-cmd">git clone https://github.com/MIMI180306/claude-persistent-memory.git</span>
+        <span class="terminal-copy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        </span>
+      </div>
+    </div>
   </section>
 
-  <section class="features">
-    <article class="feature">
-      <h3>🔍 Hybrid Search</h3>
-      <p>BM25 full-text search (FTS5) combined with vector semantic similarity (sqlite-vec) for accurate memory retrieval with fused ranking.</p>
-    </article>
-    <article class="feature">
-      <h3>📡 4-Channel Retrieval</h3>
-      <p>Pull via MCP tools on demand, plus auto-push through Claude Code hooks on user prompt, pre-tool, and post-tool events.</p>
-    </article>
-    <article class="feature">
-      <h3>🧠 LLM Structuring</h3>
-      <p>Memories are automatically structured into &lt;what&gt;/&lt;when&gt;/&lt;do&gt;/&lt;warn&gt; XML format by LLM for consistent retrieval.</p>
-    </article>
-    <article class="feature">
-      <h3>📦 Auto Clustering</h3>
-      <p>Similar memories are grouped automatically. Mature clusters are promoted to reusable skill memories that never decay.</p>
-    </article>
-    <article class="feature">
-      <h3>📊 Confidence Scoring</h3>
-      <p>Each memory has a confidence score adjusted through validation feedback and usage frequency, with configurable time decay.</p>
-    </article>
-    <article class="feature">
-      <h3>🔒 Local-First</h3>
-      <p>All data stored in local SQLite database. Your memories never leave your machine. Zero cloud dependency for storage.</p>
-    </article>
+  <div class="divider"></div>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="container">
+      <div class="section-tag">Features</div>
+      <h2 class="section-title">AI memory that<br>actually works</h2>
+      <p class="section-desc">A complete memory lifecycle &mdash; from structured storage to intelligent retrieval, clustering, and time decay.</p>
+
+      <div class="features-grid">
+        <article class="feature-cell">
+          <div class="feature-idx">01</div>
+          <h3>Hybrid Search</h3>
+          <p>BM25 full-text (FTS5) combined with vector semantic similarity (sqlite-vec). Fused ranking for precise memory retrieval.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-idx">02</div>
+          <h3>4-Channel Retrieval</h3>
+          <p>Pull via MCP tools on demand, plus auto-push through hooks on user prompt, pre-tool, and post-tool events.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-idx">03</div>
+          <h3>LLM Structuring</h3>
+          <p>Memories auto-structured into what / when / do / warn XML format by LLM for consistent retrieval quality.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-idx">04</div>
+          <h3>Auto Clustering</h3>
+          <p>Similar memories grouped automatically. Mature clusters promoted to reusable skill memories that never decay.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-idx">05</div>
+          <h3>Confidence Scoring</h3>
+          <p>Each memory has a confidence score adjusted through validation feedback and usage, with configurable time decay.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-idx">06</div>
+          <h3>Local-First Storage</h3>
+          <p>All data in local SQLite. Your memories never leave your machine. Zero cloud dependency for storage.</p>
+        </article>
+      </div>
+    </div>
   </section>
 
-  <section class="install">
-    <h2>Quick Start</h2>
-    <pre><span># Clone and install</span>
-git clone https://github.com/MIMI180306/claude-persistent-memory.git
-cd claude-persistent-memory
-npm install
+  <div class="divider"></div>
 
-<span># Configure Azure OpenAI credentials</span>
-cp config.default.js config.js
+  <!-- Architecture -->
+  <section id="architecture" class="arch-section">
+    <div class="container">
+      <div class="section-tag" style="justify-content:center;">Architecture</div>
+      <h2 class="section-title" style="text-align:center;">Pull + Push dual channels</h2>
+      <p class="section-desc" style="text-align:center; margin-left:auto; margin-right:auto;">
+        On-demand MCP tools paired with automatic hook injection across the full Claude Code lifecycle.
+      </p>
 
-<span># Start services</span>
-npm run embedding-server  <span># Terminal 1: bge-m3 embeddings</span>
-npm run llm-server        <span># Terminal 2: Azure OpenAI proxy</span></pre>
+      <div class="arch-visual">
+        <!-- Row 1: Channels -->
+        <div class="arch-row arch-row-2">
+          <div class="arch-box orange-top">
+            <div class="arch-label orange">Pull &mdash; MCP Server</div>
+            <div class="arch-items">
+              <div class="arch-item"><span class="arch-dot orange"></span> memory_search</div>
+              <div class="arch-item"><span class="arch-dot orange"></span> memory_save</div>
+              <div class="arch-item"><span class="arch-dot orange"></span> memory_validate</div>
+              <div class="arch-item"><span class="arch-dot orange"></span> memory_stats</div>
+            </div>
+          </div>
+          <div class="arch-box green-top">
+            <div class="arch-label green">Push &mdash; Hooks</div>
+            <div class="arch-items">
+              <div class="arch-item"><span class="arch-dot green"></span> UserPromptSubmit</div>
+              <div class="arch-item"><span class="arch-dot green"></span> PreToolUse</div>
+              <div class="arch-item"><span class="arch-dot green"></span> PostToolUse</div>
+              <div class="arch-item"><span class="arch-dot green"></span> PreCompact / SessionEnd</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connector -->
+        <div class="arch-connector"><div class="arch-line"></div></div>
+
+        <!-- Core -->
+        <div class="arch-row arch-row-1">
+          <div class="arch-core">
+            <div class="arch-core-title">SQLite + FTS5 + sqlite-vec</div>
+            <div class="arch-core-sub">memory.db &mdash; hybrid BM25 + cosine similarity</div>
+          </div>
+        </div>
+
+        <!-- Connector -->
+        <div class="arch-connector"><div class="arch-line"></div></div>
+
+        <!-- Row 3: Servers -->
+        <div class="arch-row arch-row-2">
+          <div class="arch-box cyan-top">
+            <div class="arch-label cyan">Embedding Server</div>
+            <div class="arch-items">
+              <div class="arch-item"><span class="arch-dot cyan"></span> TCP :23811</div>
+              <div class="arch-item"><span class="arch-dot cyan"></span> bge-m3 &middot; 1024-dim</div>
+            </div>
+          </div>
+          <div class="arch-box">
+            <div class="arch-label amber">LLM Server</div>
+            <div class="arch-items">
+              <div class="arch-item"><span class="arch-dot amber"></span> TCP :23812</div>
+              <div class="arch-item"><span class="arch-dot amber"></span> Azure OpenAI GPT-4.1</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <section class="arch">
-    <h2>Architecture</h2>
-    <pre>
-┌──────────────────────────────────────────────────────────┐
-│                   Claude Code Session                    │
-├──────────────────────────────────────────────────────────┤
-│                                                          │
-│  Pull (MCP Tools)              Push (Hooks)              │
-│  ┌─────────────────┐   ┌────────────────────────────┐    │
-│  │ memory_search   │   │ UserPromptSubmit Hook      │    │
-│  │ memory_save     │   │ PreToolUse Hook            │    │
-│  │ memory_validate │   │ PostToolUse Hook           │    │
-│  │ memory_stats    │   │ PreCompact / SessionEnd    │    │
-│  └────────┬────────┘   └─────────────┬──────────────┘    │
-│           └────────────┬─────────────┘                   │
-│                        ▼                                 │
-│  ┌──────────────────────────────────────────────────┐    │
-│  │         SQLite + FTS5 + sqlite-vec               │    │
-│  └──────────────────────────────────────────────────┘    │
-│                        ▲                                 │
-│           ┌────────────┴────────────┐                    │
-│  ┌────────┴────────┐  ┌────────────┴───────────────┐    │
-│  │ Embedding Server│  │ LLM Server                 │    │
-│  │ bge-m3 (1024d)  │  │ Azure OpenAI GPT-4.1       │    │
-│  └─────────────────┘  └────────────────────────────┘    │
-└──────────────────────────────────────────────────────────┘</pre>
+  <!-- Lifecycle -->
+  <section class="lifecycle-section">
+    <div class="container">
+      <div class="section-tag" style="justify-content:center;">How It Works</div>
+      <h2 class="section-title" style="text-align:center;">Memory lifecycle</h2>
+      <p class="section-desc" style="text-align:center; margin-left:auto; margin-right:auto;">
+        From save to structure, embed, search, validate, cluster, promote, and decay.
+      </p>
+      <div class="lifecycle-steps">
+        <div class="lc-step"><div class="lc-num">1</div><div class="lc-name">Save</div><div class="lc-desc">MCP tool or auto-extract</div></div>
+        <div class="lc-step"><div class="lc-num">2</div><div class="lc-name">Structure</div><div class="lc-desc">LLM &rarr; XML format</div></div>
+        <div class="lc-step"><div class="lc-num">3</div><div class="lc-name">Embed</div><div class="lc-desc">bge-m3 1024-dim vector</div></div>
+        <div class="lc-step"><div class="lc-num">4</div><div class="lc-name">Search</div><div class="lc-desc">BM25 + vector fused</div></div>
+        <div class="lc-step"><div class="lc-num">5</div><div class="lc-name">Validate</div><div class="lc-desc">Confidence &plusmn; feedback</div></div>
+        <div class="lc-step"><div class="lc-num">6</div><div class="lc-name">Cluster</div><div class="lc-desc">Auto-group similar</div></div>
+        <div class="lc-step"><div class="lc-num">7</div><div class="lc-name">Promote</div><div class="lc-desc">Cluster &rarr; skill</div></div>
+        <div class="lc-step"><div class="lc-num">8</div><div class="lc-name">Decay</div><div class="lc-desc">Low confidence fades</div></div>
+      </div>
+    </div>
   </section>
 
+  <!-- Quick Start -->
+  <section id="quickstart">
+    <div class="container">
+      <div class="section-tag">Getting Started</div>
+      <h2 class="section-title">Up and running<br>in 3 steps</h2>
+      <p class="section-desc">Clone, configure, and start. Then add MCP + hooks config to your Claude Code project.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-title">Install</div>
+          <pre><span class="g">git clone</span> https://github.com/
+  MIMI180306/claude-persistent-memory.git
+<span class="g">cd</span> claude-persistent-memory
+<span class="g">npm</span> install</pre>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-title">Configure</div>
+          <pre><span class="g">cp</span> config.default.js config.js
+
+<span class="c"># Set Azure OpenAI credentials</span>
+<span class="g">export</span> <span class="o">AZURE_OPENAI_ENDPOINT</span>=...
+<span class="g">export</span> <span class="o">AZURE_OPENAI_KEY</span>=...
+<span class="g">export</span> <span class="o">AZURE_OPENAI_DEPLOYMENT</span>=...</pre>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-title">Start Services</div>
+          <pre><span class="c"># Terminal 1: Embeddings (~2GB RAM)</span>
+<span class="g">npm run</span> <span class="o">embedding-server</span>
+
+<span class="c"># Terminal 2: LLM proxy</span>
+<span class="g">npm run</span> <span class="o">llm-server</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Memory Types -->
+  <section id="types">
+    <div class="container">
+      <div class="section-tag">Memory Types</div>
+      <h2 class="section-title">7 types with<br>configurable decay</h2>
+      <p class="section-desc">Each type has its own half-life. Skills promoted from mature clusters never expire.</p>
+
+      <div class="types-grid">
+        <div class="type-cell">
+          <div class="type-name">fact</div>
+          <div class="type-meta">
+            <div class="type-halflife">90 days</div>
+            <div class="type-desc">Stable facts about the codebase</div>
+          </div>
+        </div>
+        <div class="type-cell">
+          <div class="type-name">decision</div>
+          <div class="type-meta">
+            <div class="type-halflife">90 days</div>
+            <div class="type-desc">Architectural decisions and rationale</div>
+          </div>
+        </div>
+        <div class="type-cell">
+          <div class="type-name">bug</div>
+          <div class="type-meta">
+            <div class="type-halflife">60 days</div>
+            <div class="type-desc">Bug fixes and root causes</div>
+          </div>
+        </div>
+        <div class="type-cell">
+          <div class="type-name">pattern</div>
+          <div class="type-meta">
+            <div class="type-halflife">90 days</div>
+            <div class="type-desc">Recurring code patterns</div>
+          </div>
+        </div>
+        <div class="type-cell">
+          <div class="type-name">context</div>
+          <div class="type-meta">
+            <div class="type-halflife">30 days</div>
+            <div class="type-desc">Session-specific context</div>
+          </div>
+        </div>
+        <div class="type-cell">
+          <div class="type-name">preference</div>
+          <div class="type-meta">
+            <div class="type-halflife">60 days</div>
+            <div class="type-desc">User workflow preferences</div>
+          </div>
+        </div>
+        <div class="type-cell">
+          <div class="type-name">skill</div>
+          <div class="type-meta">
+            <div class="type-halflife">never</div>
+            <div class="type-desc">Promoted from mature clusters</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
   <footer>
-    <p>MIT License · Built by <a href="https://github.com/MIMI180306">MIMI180306</a> · <a href="https://github.com/MIMI180306/claude-persistent-memory">GitHub Repository</a></p>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        MIT License &middot; Built by <a href="https://github.com/MIMI180306">&nbsp;MIMI180306</a>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/MIMI180306/claude-persistent-memory">GitHub</a>
+        <a href="https://github.com/MIMI180306/claude-persistent-memory/issues">Issues</a>
+        <a href="https://github.com/MIMI180306/claude-persistent-memory/blob/main/LICENSE">License</a>
+      </div>
+    </div>
   </footer>
 
 </body>

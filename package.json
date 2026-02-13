@@ -19,5 +19,8 @@
     "sqlite-vec": "^0.1.7-alpha.2",
     "zod": "^3.24.0"
   },
+  "optionalDependencies": {
+    "nodejieba": "^2.6.0"
+  },
   "license": "MIT"
 }
